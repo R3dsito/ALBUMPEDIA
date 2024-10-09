@@ -1,0 +1,3 @@
+http://localhost:3000/albums?sortBy=releaseDate&order=asc&page=1&limit=5
+
+http://localhost:3000/songs?sortBy=duration&order=desc&page=2&limit=10

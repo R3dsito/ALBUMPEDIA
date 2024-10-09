@@ -1,6 +1,5 @@
 import songModel from '../models/songModel.js';
 
-
 const createSong = async (req, res) => {
     const { title, duration, album, composer } = req.body;
     try {
@@ -14,9 +13,33 @@ const createSong = async (req, res) => {
 };
 
 const getSongs = async (req, res) => {
+    const { sortBy, order, page = 1, limit = 10 } = req.query;
+
     try {
-        const songs = await songModel.find().populate('composer album');
-        res.status(200).json({ msg: 'success', data: songs });
+        // Configura el ordenamiento
+        const sortOptions = {};
+        if (sortBy) {
+            sortOptions[sortBy] = order === 'desc' ? -1 : 1; // 1 para ascendente, -1 para descendente
+        }
+
+        // Paginación
+        const skip = (page - 1) * limit;
+        const songs = await songModel.find()
+            .populate('composer album')
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        // Contar el total de documentos
+        const total = await songModel.countDocuments();
+
+        res.status(200).json({ 
+            msg: 'success', 
+            data: songs, 
+            total,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         res.status(500).json({ msg: 'error', data: [] });
         console.error(error);
@@ -76,4 +99,5 @@ const getSongByTitle = async (req, res) => {
     }
 };
 
+// Exporta todas las funciones
 export { createSong, getSongs, getSongById, updateSong, deleteSong, getSongByTitle };
